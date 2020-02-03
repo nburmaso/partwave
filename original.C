@@ -10,9 +10,6 @@
 #include "TComplex.h"
 #include "TF2.h"
 #include "TStyle.h"
-#include "TGraph.h"
-#include "fstream"
-
 double s3 = sqrt(3.);
 double s5 = sqrt(5.);
 double s6 = sqrt(6.);
@@ -144,80 +141,22 @@ double xt[15];
 TComplex a0,a1,a2,a3,a4;
 
 double fImG(const double* x){
-  TComplex u(x[0],x[1],0);
+  TComplex u(x[0],x[1],1);
   TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
   return G.Im();
 }
 
-//--------------------------------------
-// additional functions for root finding
-//
-double r1[2] = {0.0,0.0};
-double r2[2] = {0.0,0.0};
-double r3[2] = {0.0,0.0};
-double r4[2] = {0.0,0.0};
-//r1 -- 1st root, r2 -- 2nd root, etc.
-double fImG1(const double* x){
-  TComplex u(x[0],x[1],0);
-  TComplex u1(r1[0], r1[1], 0);
-  TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
-  return ( G / (u - u1 ) ).Im();
-}
-
-double fImG2(const double* x){
-  TComplex u(x[0],x[1],0);
-  TComplex u1(r1[0], r1[1], 0);
-  TComplex u2(r2[0], r2[1], 0);
-  TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
-  return ( G / ((u - u1)*(u - u2)) ).Im();
-}
-
-double fImG3(const double* x){
-  TComplex u(x[0],x[1],0);
-  TComplex u1(r2[0], r1[1], 0);
-  TComplex u2(r2[0], r2[1], 0);
-  TComplex u3(r3[0], r3[1], 0);
-  TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
-  return ( G / ((u - u1)*(u - u2)*(u - u3)) ).Im();
-}
-
 double fReG(const double* x){
-  TComplex u(x[0],x[1],0);
+  TComplex u(x[0],x[1],1);
   TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
   return G.Re();
 }
 
-double fReG1(const double* x){
-  TComplex u(x[0],x[1],0);
-  TComplex u1(r1[0], r1[1], 0);
-  TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
-  return ( G / (u - u1) ).Re();
-}
-
-double fReG2(const double* x){
-  TComplex u(x[0],x[1],0);
-  TComplex u1(r1[0], r1[1], 0);
-  TComplex u2(r2[0], r2[1], 0);
-  TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
-  return ( G / ((u - u1)*(u - u2)) ).Re();
-}
-
-double fReG3(const double* x){
-  TComplex u(x[0],x[1],0);
-  TComplex u1(r2[0], r1[1], 0);
-  TComplex u2(r2[0], r2[1], 0);
-  TComplex u3(r3[0], r3[1], 0);
-  TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
-  return ( G / ((u - u1)*(u - u2)*(u - u3)) ).Re();
-}
-//-------------------------------------
-
 double f2RhoG(double* x, double* p=0){
-  TComplex u(x[0],x[1],0);
+  TComplex u(x[0],x[1],1);
   TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
   double rho = G.Rho();
-  if (rho>1000) 
-    return 1000;
+  if (rho>3000) return 3000;
   return rho;
 }
 
@@ -258,12 +197,12 @@ void calc(TComplex u1, TComplex u2, TComplex u3, TComplex u4, TComplex &S0, TCom
 }
 
 
-void waves_from_moments(){
+void original(){
   gStyle->SetOptStat(0);
   ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit","Minuit2");
   minimizer->SetMaxFunctionCalls(1000000);
   minimizer->SetMaxIterations(10000);
-  minimizer->SetTolerance(0.00001);
+  minimizer->SetTolerance(0.001);
   minimizer->SetPrintLevel(0);
   ROOT::Math::Functor f(&fw,7);
   minimizer->SetFunction(f);
@@ -297,39 +236,6 @@ void waves_from_moments(){
   funlist.push_back(&f2);
   rf.SetFunctionList(funlist.begin(),funlist.end());
   rf.SetPrintLevel(0);
-
-//additional root finders
-  //finding 2nd root, excluding 1st root
-  ROOT::Math::MultiRootFinder rf1(ROOT::Math::MultiRootFinder::kHybridS);
-  ROOT::Math::Functor f11(&fReG1, 2);
-  ROOT::Math::Functor f21(&fImG1, 2);
-  std::vector<ROOT::Math::IMultiGenFunction*> funlist1;
-  funlist1.push_back(&f11);
-  funlist1.push_back(&f21);
-  rf1.SetFunctionList(funlist1.begin(),funlist1.end());
-  rf1.SetPrintLevel(0);
-
-  //finding 3rd root, excluding 1st and 2nd
-  ROOT::Math::MultiRootFinder rf2(ROOT::Math::MultiRootFinder::kHybridS);
-  ROOT::Math::Functor f12(&fReG2, 2);
-  ROOT::Math::Functor f22(&fImG2, 2);
-  std::vector<ROOT::Math::IMultiGenFunction*> funlist2;
-  funlist2.push_back(&f12);
-  funlist2.push_back(&f22);
-  rf2.SetFunctionList(funlist2.begin(),funlist2.end());
-  rf2.SetPrintLevel(0);
-
-  //finding 4th root, excluding 1st, 2nd and 3rd
-  ROOT::Math::MultiRootFinder rf3(ROOT::Math::MultiRootFinder::kHybridS);
-  ROOT::Math::Functor f13(&fReG3, 2);
-  ROOT::Math::Functor f23(&fImG3, 2);
-  std::vector<ROOT::Math::IMultiGenFunction*> funlist3;
-  funlist3.push_back(&f13);
-  funlist3.push_back(&f23);
-  rf3.SetFunctionList(funlist3.begin(),funlist3.end());
-  rf3.SetPrintLevel(0);
-//--------------------
-
   double x1[] = {0.616,3.59};
   double x2[] = {1.170,3.59};
   double x3[] = {0.840,5.90};
@@ -347,14 +253,10 @@ void waves_from_moments(){
   }
   Int_t nm = hTLM[0]->GetNbinsX();
   Int_t l[15]={0,1,1,2,2,2,3,3,3,3,4,4,4,4,4};
-
-  std::vector<double> vx1, vx2, vx3, vx4;
-  std::vector<double> vy1, vy2, vy3, vy4;
-
+  
   for (Int_t im=nm-1;im>=0;im--){
-    // if (im<nm-30)
-    //   continue;
-    printf("Mass bin: %i\n",im);
+    // if (im<nm-9) continue;
+    // printf("Mass bin: %i\n",im);
     
     for (Int_t i=0;i<15;i++){
       xt[i] = sqrt(4.*TMath::Pi())/sqrt(2*l[i]+1)*hTLM[i]->GetBinContent(im+1);
@@ -448,51 +350,31 @@ void waves_from_moments(){
     a0 = S0 + s3*P0 + s5*D0;
     bool ret;
     
-    std::cout<<"-----------\n";
-    printf("1stB %.04f %.04f\n",x1[0],x1[1]);
-    rf.Solve(x1, 100000, 1e-6);
-    r1[0] = rf.X()[0];
-    r1[1] = rf.X()[1];
-    printf("1stA %.04f %.04f\n",rf.X()[0],rf.X()[1]);
-    TComplex u1(rf.X()[0],rf.X()[1],0);
+    printf("%.04f %.04f\n",x1[0],x1[1]);
+    rf.Solve(x1);
+    printf("%.04f %.04f\n",rf.X()[0],rf.X()[1]);
+    TComplex u1(rf.X()[0],rf.X()[1],1);
     
-    printf("2ndB %.04f %.04f\n",x2[0],x2[1]);
-    rf1.Solve(x2, 100000, 1e-10); // x1 excluded, getting approximate root
-    r2[0] = rf1.X()[0];
-    r2[1] = rf1.X()[1];
-    rf.Solve(r2, 100000, 1e-10); // starting from approx. root
-    printf("2ndA %.04f %.04f\n",rf.X()[0],rf.X()[1]);
-    TComplex u2(rf.X()[0],rf.X()[1],0);
+    printf("%.04f %.04f\n",x2[0],x2[1]);
+    rf.Solve(x2);
+    printf("%.04f %.04f\n",rf.X()[0],rf.X()[1]);
+    TComplex u2(rf.X()[0],rf.X()[1],1);
     
-    printf("3rdB %.04f %.04f\n",x3[0],x3[1]);
-    rf2.Solve(x3, 100000, 1e-10);
-    r3[0] = rf2.X()[0];
-    r3[1] = rf2.X()[1];
-    rf.Solve(r3, 100000, 1e-10);
-    printf("3rdA %.04f %.04f\n",rf.X()[0],rf.X()[1]);
-    TComplex u3(rf.X()[0],rf.X()[1],0);
+    printf("%.04f %.04f\n",x3[0],x3[1]);
+    rf.Solve(x3);
+    printf("%.04f %.04f\n",rf.X()[0],rf.X()[1]);
+    TComplex u3(rf.X()[0],rf.X()[1],1);
     
-    printf("4thB %.04f %.04f\n",x4[0],x4[1]);
-    rf3.Solve(x4, 100000, 1e-10);
-    r4[0] = rf3.X()[0];
-    r4[1] = rf3.X()[1];
-    rf.Solve(r4, 100000, 1e-10);
-    printf("4thA %.04f %.04f\n",rf.X()[0],rf.X()[1]);
-    TComplex u4(rf.X()[0],rf.X()[1],0);
-    std::cout<<"-----------\n";
-
-//-----------------------------------
-    x1[0]=u1.Re(); x1[1]=u1.Im();
-    x2[0]=u2.Re(); x2[1]=u2.Im();
-    x3[0]=u3.Re(); x3[1]=u3.Im();
-    x4[0]=u4.Re(); x4[1]=u4.Im();
-
-    vx1.push_back(x1[0]);vy1.push_back(x1[1]);
-    vx2.push_back(x2[0]);vy2.push_back(x2[1]);
-    vx3.push_back(x3[0]);vy3.push_back(x3[1]);
-    vx4.push_back(x4[0]);vy4.push_back(x4[1]);
-//-----------------------------------
-
+    printf("%.04f %.04f\n",x4[0],x4[1]);
+    rf.Solve(x4);
+    printf("%.04f %.04f\n",rf.X()[0],rf.X()[1]);
+    TComplex u4(rf.X()[0],rf.X()[1],1);
+    
+    x1[0]=u1.Rho(); x1[1]=u1.Theta();
+    x2[0]=u2.Rho(); x2[1]=u2.Theta();
+    x3[0]=u3.Rho(); x3[1]=u3.Theta();
+    x4[0]=u4.Rho(); x4[1]=u4.Theta();
+    
     TComplex u2c = TComplex::Conjugate(u2);
     TComplex u3c = TComplex::Conjugate(u3);
     TComplex u4c = TComplex::Conjugate(u4);
@@ -528,7 +410,7 @@ void waves_from_moments(){
     }
   }
   
-  TCanvas* c2 = new TCanvas("c2","c2",1900,800);
+  TCanvas* c2 = new TCanvas("c2","c2",1800,800);
   c2->Divide(4,3,0.001,0.001);
   Float_t color[8] = {kBlack,kRed,kMagenta,kGray,kGreen+1,kYellow+1,kCyan,kBlue+1};
   for (Int_t i=0;i<12;i++){
@@ -552,10 +434,6 @@ void waves_from_moments(){
   ff2RhoG->SetNpx(1000);
   ff2RhoG->SetNpy(1000);
   ff2RhoG->Draw("colz");
-
-  std::ofstream myfile;
-  myfile.open ("roots.txt");
-  for (int i=0; i<vx1.size(); i++)
-    myfile << vx1[i] << " " << vy1[i] << " " << vx2[i] << " " << vy2[i] << " " << vx3[i] << " " << vy3[i] << " " << vx4[i] << " " << vy4[i] << std::endl;
-  myfile.close();
+//  
+//
 }
