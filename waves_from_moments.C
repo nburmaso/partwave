@@ -142,6 +142,7 @@ double fw(const double* xw){
 double xt[15];
 
 TComplex a0,a1,a2,a3,a4;
+TComplex a0pol, a1pol, a2pol, a3pol, a4pol;
 
 double fImG(const double* x){
   TComplex u(x[0],x[1],0);
@@ -161,7 +162,7 @@ double fImG1(const double* x){
   TComplex u(x[0],x[1],0);
   TComplex u1(r1[0], r1[1], 0);
   TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
-  return ( G / (u - u1 ) ).Im();
+  return ( G / (u - u1) ).Im();
 }
 
 double fImG2(const double* x){
@@ -174,7 +175,7 @@ double fImG2(const double* x){
 
 double fImG3(const double* x){
   TComplex u(x[0],x[1],0);
-  TComplex u1(r2[0], r1[1], 0);
+  TComplex u1(r1[0], r1[1], 0);
   TComplex u2(r2[0], r2[1], 0);
   TComplex u3(r3[0], r3[1], 0);
   TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
@@ -204,7 +205,7 @@ double fReG2(const double* x){
 
 double fReG3(const double* x){
   TComplex u(x[0],x[1],0);
-  TComplex u1(r2[0], r1[1], 0);
+  TComplex u1(r1[0], r1[1], 0);
   TComplex u2(r2[0], r2[1], 0);
   TComplex u3(r3[0], r3[1], 0);
   TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
@@ -216,8 +217,8 @@ double f2RhoG(double* x, double* p=0){
   TComplex u(x[0],x[1],0);
   TComplex G = a4*u*u*u*u-a3*u*u*u+a2*u*u-a1*u+a0;
   double rho = G.Rho();
-  if (rho>1000) 
-    return 1000;
+  if (rho>0.1) 
+    return 0.1;
   return rho;
 }
 
@@ -330,10 +331,10 @@ void waves_from_moments(){
   rf3.SetPrintLevel(0);
 //--------------------
 
-  double x1[] = {0.616,3.59};
-  double x2[] = {1.170,3.59};
-  double x3[] = {0.840,5.90};
-  double x4[] = {1.640,5.78};
+  double x1[] = {-0.9, 0.7}; //{0.616,3.59};
+  double x2[] = { 0.8, 0.7}; //{1.170,3.59};
+  double x3[] = { 1.5,-1.4}; //{0.840,5.90};
+  double x4[] = {-0.3,-0.5}; //{1.640,5.78};
 
   TString wname[12] = {"|S_{0}|^{2}","|P_{0}|^{2}","|P_{-}|^{2}","|P_{+}|^{2}","|D_{0}|^{2}","|D_{-}|^{2}","|D_{+}|^{2}","arg P_{0}","arg P_{-}","arg D_{0}","arg D_{-}","arg D_{+}"}; 
   TH1D* hX[8][12];
@@ -435,18 +436,23 @@ void waves_from_moments(){
     double pm   = pmdm/dm/2./cos(apm-adm);
     if (pm<0) pm=-pm;
     
-    TComplex S0(s0,0.,1);
+    TComplex S0(s0,0., 1);
     TComplex P0(p0,ap0,1);
     TComplex PM(pm,apm,1);
     TComplex D0(d0,ad0,1);
     TComplex DM(dm,adm,1);
     
-    a4 = S0 - s3*P0 + s5*D0;
-    a3 = 2.*s3*(PM-s5*DM);
-    a2 = 2.*S0-4.*s5*D0;
-    a1 = 2.*s3*(PM+s5*DM);
-    a0 = S0 + s3*P0 + s5*D0;
-    bool ret;
+    a4pol = S0 - s3*P0 + s5*D0;
+    a3pol = 2.*s3*(PM-s5*DM);
+    a2pol = 2.*S0-4.*s5*D0;
+    a1pol = 2.*s3*(PM+s5*DM);
+    a0pol = S0 + s3*P0 + s5*D0;
+    
+    a4 = TComplex(a4pol.Re(), a4pol.Im(), 0);
+    a3 = TComplex(a3pol.Re(), a3pol.Im(), 0);
+    a2 = TComplex(a2pol.Re(), a2pol.Im(), 0);
+    a1 = TComplex(a1pol.Re(), a1pol.Im(), 0);
+    a0 = TComplex(a0pol.Re(), a0pol.Im(), 0);
     
     std::cout<<"-----------\n";
     printf("1stB %.04f %.04f\n",x1[0],x1[1]);
@@ -454,7 +460,7 @@ void waves_from_moments(){
     r1[0] = rf.X()[0];
     r1[1] = rf.X()[1];
     printf("1stA %.04f %.04f\n",rf.X()[0],rf.X()[1]);
-    TComplex u1(rf.X()[0],rf.X()[1],0);
+    TComplex u1cor(rf.X()[0],rf.X()[1],0);
     
     printf("2ndB %.04f %.04f\n",x2[0],x2[1]);
     rf1.Solve(x2, 100000, 1e-10); // x1 excluded, getting approximate root
@@ -462,7 +468,7 @@ void waves_from_moments(){
     r2[1] = rf1.X()[1];
     rf.Solve(r2, 100000, 1e-10); // starting from approx. root
     printf("2ndA %.04f %.04f\n",rf.X()[0],rf.X()[1]);
-    TComplex u2(rf.X()[0],rf.X()[1],0);
+    TComplex u2cor(rf.X()[0],rf.X()[1],0);
     
     printf("3rdB %.04f %.04f\n",x3[0],x3[1]);
     rf2.Solve(x3, 100000, 1e-10);
@@ -470,7 +476,7 @@ void waves_from_moments(){
     r3[1] = rf2.X()[1];
     rf.Solve(r3, 100000, 1e-10);
     printf("3rdA %.04f %.04f\n",rf.X()[0],rf.X()[1]);
-    TComplex u3(rf.X()[0],rf.X()[1],0);
+    TComplex u3cor(rf.X()[0],rf.X()[1],0);
     
     printf("4thB %.04f %.04f\n",x4[0],x4[1]);
     rf3.Solve(x4, 100000, 1e-10);
@@ -478,20 +484,25 @@ void waves_from_moments(){
     r4[1] = rf3.X()[1];
     rf.Solve(r4, 100000, 1e-10);
     printf("4thA %.04f %.04f\n",rf.X()[0],rf.X()[1]);
-    TComplex u4(rf.X()[0],rf.X()[1],0);
+    TComplex u4cor(rf.X()[0],rf.X()[1],0);
     std::cout<<"-----------\n";
 
 //-----------------------------------
-    x1[0]=u1.Re(); x1[1]=u1.Im();
-    x2[0]=u2.Re(); x2[1]=u2.Im();
-    x3[0]=u3.Re(); x3[1]=u3.Im();
-    x4[0]=u4.Re(); x4[1]=u4.Im();
+    x1[0]=u1cor.Re(); x1[1]=u1cor.Im();
+    x2[0]=u2cor.Re(); x2[1]=u2cor.Im();
+    x3[0]=u3cor.Re(); x3[1]=u3cor.Im();
+    x4[0]=u4cor.Re(); x4[1]=u4cor.Im();
 
     vx1.push_back(x1[0]);vy1.push_back(x1[1]);
     vx2.push_back(x2[0]);vy2.push_back(x2[1]);
     vx3.push_back(x3[0]);vy3.push_back(x3[1]);
     vx4.push_back(x4[0]);vy4.push_back(x4[1]);
 //-----------------------------------
+
+    TComplex u1(u1cor.Rho(), u1cor.Theta(),1);
+    TComplex u2(u2cor.Rho(), u2cor.Theta(),1);
+    TComplex u3(u3cor.Rho(), u3cor.Theta(),1);
+    TComplex u4(u4cor.Rho(), u4cor.Theta(),1);
 
     TComplex u2c = TComplex::Conjugate(u2);
     TComplex u3c = TComplex::Conjugate(u3);
@@ -548,14 +559,14 @@ void waves_from_moments(){
   }
 
   new TCanvas;
-  TF2* ff2RhoG = new TF2("ff2RhoG",&f2RhoG,0,3,0,2*pi);
+  TF2* ff2RhoG = new TF2("ff2RhoG",&f2RhoG,-3,3,-2*pi,2*pi);
   ff2RhoG->SetNpx(1000);
   ff2RhoG->SetNpy(1000);
   ff2RhoG->Draw("colz");
 
-  std::ofstream myfile;
-  myfile.open ("roots.txt");
+  std::ofstream ofile;
+  ofile.open ("roots.txt");
   for (int i=0; i<vx1.size(); i++)
-    myfile << vx1[i] << " " << vy1[i] << " " << vx2[i] << " " << vy2[i] << " " << vx3[i] << " " << vy3[i] << " " << vx4[i] << " " << vy4[i] << std::endl;
-  myfile.close();
+    ofile << vx1[i] << " " << vy1[i] << " " << vx2[i] << " " << vy2[i] << " " << vx3[i] << " " << vy3[i] << " " << vx4[i] << " " << vy4[i] << std::endl;
+  ofile.close();
 }
