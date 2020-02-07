@@ -223,11 +223,11 @@ double f2RhoG(double* x, double* p=0){
 }
 
 void calc(TComplex u1, TComplex u2, TComplex u3, TComplex u4, TComplex &S0, TComplex &P0, TComplex &Pm, TComplex &Pp, TComplex &D0, TComplex &Dm, TComplex &Dp){
-  S0 = 1/6.*a4*(2.*u1*u2*u3*u4+u1*u2+u1*u3+u1*u4+u2*u3+u2*u4+u3*u4+TComplex(2));
-  P0 = 1/2./s3*a4*(u1*u2*u3*u4-TComplex(1));
-  D0 = 1/6./s5*a4*(u1*u2*u3*u4-u1*u2-u1*u3-u1*u4-u2*u3-u2*u4-u3*u4+TComplex(1));
-  Pm = 1/4./s3*a4*(u1*u2*u3+u2*u3*u4+u3*u4*u1+u4*u1*u2+u1+u2+u3+u4);
-  Dm = 1/4./s15*a4*(u1*u2*u3+u2*u3*u4+u3*u4*u1+u4*u1*u2-u1-u2-u3-u4);
+  S0 = 1/6.*a4pol*(2.*u1*u2*u3*u4+u1*u2+u1*u3+u1*u4+u2*u3+u2*u4+u3*u4+TComplex(2));
+  P0 = 1/2./s3*a4pol*(u1*u2*u3*u4-TComplex(1));
+  D0 = 1/6./s5*a4pol*(u1*u2*u3*u4-u1*u2-u1*u3-u1*u4-u2*u3-u2*u4-u3*u4+TComplex(1));
+  Pm = 1/4./s3*a4pol*(u1*u2*u3+u2*u3*u4+u3*u4*u1+u4*u1*u2+u1+u2+u3+u4);
+  Dm = 1/4./s15*a4pol*(u1*u2*u3+u2*u3*u4+u3*u4*u1+u4*u1*u2-u1-u2-u3-u4);
   // Rotate all
   double s0t = S0.Theta();
   double p0t = P0.Theta();
@@ -533,9 +533,20 @@ void waves_from_moments(){
       hX[s][ 6]->SetBinContent(im+1,vDp[s].Rho2());
       hX[s][ 7]->SetBinContent(im+1,vP0[s].Theta()>0 ? vP0[s].Theta() : vP0[s].Theta()+2*pi);
       hX[s][ 8]->SetBinContent(im+1,vPm[s].Theta()>0 ? vPm[s].Theta() : vPm[s].Theta()+2*pi);
-      hX[s][ 9]->SetBinContent(im+1,vD0[s].Theta()>0 ? vD0[s].Theta() : vD0[s].Theta()+2*pi);
-      hX[s][10]->SetBinContent(im+1,vDm[s].Theta()>0 ? vDm[s].Theta() : vDm[s].Theta()+2*pi);
-      hX[s][11]->SetBinContent(im+1,vDp[s].Theta()>0 ? vDp[s].Theta() : vDp[s].Theta()+2*pi);
+
+      double hd0 = vD0[s].Theta()>0 ? vD0[s].Theta() : vD0[s].Theta()+2*pi;
+      if (hd0 < pi)
+        hd0 = 2*pi - hd0;
+
+      double hdm = vDm[s].Theta()>0 ? vDm[s].Theta() : vDm[s].Theta()+2*pi;
+      if (hdm < pi)
+        hdm = 2*pi - hdm;
+
+      double hdp = vDp[s].Theta()>0 ? vDp[s].Theta() : vDp[s].Theta()+2*pi;
+
+      hX[s][ 9]->SetBinContent(im+1,hd0);
+      hX[s][10]->SetBinContent(im+1,hdm);
+      hX[s][11]->SetBinContent(im+1,hdp);
     }
   }
   
