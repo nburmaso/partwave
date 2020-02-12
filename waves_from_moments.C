@@ -258,6 +258,65 @@ void calc(TComplex u1, TComplex u2, TComplex u3, TComplex u4, TComplex &S0, TCom
   Pp = TComplex(pp,0,1);
 }
 
+void checkRe(TComplex vS0, TComplex vP0, TComplex vPm, TComplex vPp, TComplex vD0, TComplex vDm, TComplex vDp, double *R) {
+
+  double s0  = vS0.Rho();
+  double p0  = vP0.Rho();
+  double pm  = vPm.Rho();
+  double d0  = vD0.Rho();
+  double dm  = vDm.Rho();
+  double pp  = vPp.Rho();
+  double dp  = vDp.Rho();
+  double ap0 = vP0.Theta();
+  double apm = vPm.Theta();
+  double ad0 = vD0.Theta();
+  double adm = vDm.Theta();
+  double adp = vDp.Theta();
+  double s0s0 = s0*s0;
+  double p0p0 = p0*p0;
+  double pmpm = pm*pm;
+  double d0d0 = d0*d0;
+  double dmdm = dm*dm;
+  double pppp = pp*pp;
+  double dpdp = dp*dp;
+  double s0p0 = 2*s0*p0*cos(ap0);
+  double p0d0 = 2*p0*d0*cos(ap0-ad0);
+  double pmdm = 2*pm*dm*cos(apm-adm);
+  double s0pm = 2*s0*pm*cos(apm);
+  double p0dm = 2*p0*dm*cos(ap0-adm);
+  double pmd0 = 2*pm*d0*cos(apm-ad0);
+  double s0d0 = 2*s0*d0*cos(ad0);
+  double s0dm = 2*s0*dm*cos(adm);
+  double p0pm = 2*p0*pm*cos(ap0-apm);
+  double d0dm = 2*d0*dm*cos(ad0-adm);
+  double ppdp = 2*pp*dp*cos(adp);
+
+  R[0] =  -t00 + s0s0 + p0p0 + pmpm + d0d0 + dmdm + pppp + dpdp;
+  R[1] =  -t10 + 1/s3*s0p0 + 2/s15*p0d0 + 1/s5*(pmdm+ppdp);
+  R[2] =  -t11 + 1/s6*s0pm + 1/s10*p0dm - 1/s30*pmd0;
+  R[3] =  -t20 + 1/s5*s0d0 + 2/5.*p0p0 - 1/5.*(pmpm+pppp) + 2/7.*d0d0 + 1/7.*(dmdm+dpdp);
+  R[4] =  -t21 + 1/s10*s0dm+ 1/5.*s32*p0pm + 1/7.*s12*d0dm;
+  R[5] =  -t22 + 1/5.*s32*(pmpm-pppp) + 1/7.*s32*(dmdm-dpdp);
+  R[6] =  -t30 + 3/7./s5*(s3*p0d0-(pmdm+ppdp));
+  R[7] =  -t31 + 1/7.*s35*(2*p0dm+s3*pmd0);
+  R[8] =  -t32 + 1/7.*s32*(pmdm-ppdp);
+  R[9] =  -t40 + 2/7.*d0d0-4/21.*(dmdm+dpdp);
+  R[10] = -t41 + 1/7.*s53*d0dm;
+  R[11] = -t42 + s10/21.*(dmdm-dpdp);
+
+  // R[0] =  -t00 + vS0*vS0 + vP0*vP0 + vPm*vPm + vD0*vD0 + vDm*vDm + vPp*vPp + vDp*vDp;
+  // R[1] =  -t10 + TComplex(1)/s3*vS0*vS0 + TComplex(2)/s15*vP0*vD0 + TComplex(1)/s5*(vPm*vDm+vPp*vDp);
+  // R[2] =  -t11 + TComplex(1)/s6*vS0*vPm + TComplex(1)/s10*vP0*vDm - TComplex(1)/s30*vPm*vD0;
+  // R[3] =  -t20 + TComplex(1)/s5*vS0*vD0 + TComplex(2/5.)*vP0*vP0 - TComplex(1/5.)*(vPm*vPm+vPp*vPp) + TComplex(2/7.)*vD0*vD0 + TComplex(1/7.)*(vDm*vDm+vDp*vDp);
+  // R[4] =  -t21 + TComplex(1)/s10*vS0*vDm+ TComplex(1/5.)*s32*vP0*vPm + TComplex(1/7.)*s12*vD0*vDm;
+  // R[5] =  -t22 + TComplex(1/5.)*s32*(vPm*vPm-vPp*vPp) + TComplex(1/7.)*s32*(vDm*vDm-vDp*vDp);
+  // R[6] =  -t30 + TComplex(3/7.)/s5*(s3*vP0*vD0-(vPm*vDm+vPp*vDp));
+  // R[7] =  -t31 + TComplex(1/7.)*s35*(TComplex(2)*vP0*vDm+s3*vPm*vD0);
+  // R[8] =  -t32 + TComplex(1/7.)*s32*(vPm*vDm-vPp*vDp);
+  // R[9] =  -t40 + TComplex(2/7.)*vD0*vD0-TComplex(4/21.)*(vDm*vDm+vDp*vDp);
+  // R[10] = -t41 + TComplex(1/7.)*s53*vD0*vDm;
+  // R[11] = -t42 + s10/TComplex(21.)*(vDm*vDm-vDp*vDp);
+}
 
 void waves_from_moments(){
   gStyle->SetOptStat(0);
@@ -276,6 +335,17 @@ void waves_from_moments(){
   TH1D* hD1p2 = (TH1D*) fWaves->Get("hD1p2");
   TH1D* hPhi0 = (TH1D*) fWaves->Get("hPhi0");
   TH1D* hPhi1 = (TH1D*) fWaves->Get("hPhi1");
+
+  TString wnameMoments[12] = {"t00","t10","t11","t20","t21","t22","t30","t31","t32","t40","t41","t42"}; 
+  TH1D* hMoments[8][12];
+  hMoments[0][0] = (TH1D*) hS0m2->Clone(Form("hX%i%02i",0,0));
+  hMoments[0][0]->Reset();
+  for (Int_t s=0;s<8;s++){
+    for (Int_t i=0;i<12;i++) {
+      hMoments[s][i] = (TH1D*) hMoments[0][0]->Clone(Form("hX%i%02i",s,i));
+      hMoments[s][i]->SetTitle(wnameMoments[i].Data());
+    }
+  }
   
   TFile* fTLM = new TFile("moments.root");
   TH1D* hTLM[15];
@@ -357,10 +427,11 @@ void waves_from_moments(){
     //   continue;
     printf("Mass bin: %i\n",im);
     
+    //-----------------
     for (Int_t i=0;i<15;i++){
       xt[i] = sqrt(4.*TMath::Pi())/sqrt(2*l[i]+1)*hTLM[i]->GetBinContent(im+1);
     }
-    
+
     t00 = xt[ 0];
     t10 = xt[ 1];
     t11 = xt[ 2];
@@ -376,6 +447,8 @@ void waves_from_moments(){
     t42 = xt[12];
     t43 = xt[13];
     t44 = xt[14];
+    //-----------------
+
     Double_t s0m2 = hS0m2->GetBinContent(im+1);
     Double_t d0m2 = hD0m2->GetBinContent(im+1);
     Double_t d1m2 = hD1m2->GetBinContent(im+1);
@@ -515,6 +588,7 @@ void waves_from_moments(){
     TComplex vD0[8];
     TComplex vDm[8];
     TComplex vDp[8];
+
     calc(u1,u2 ,u3 ,u4 ,vS0[0],vP0[0],vPm[0],vPp[0],vD0[0],vDm[0],vDp[0]);
     calc(u1,u2c,u3 ,u4 ,vS0[1],vP0[1],vPm[1],vPp[1],vD0[1],vDm[1],vDp[1]);
     calc(u1,u2 ,u3c,u4 ,vS0[2],vP0[2],vPm[2],vPp[2],vD0[2],vDm[2],vDp[2]);
@@ -523,6 +597,7 @@ void waves_from_moments(){
     calc(u1,u2 ,u3c,u4c,vS0[5],vP0[5],vPm[5],vPp[5],vD0[5],vDm[5],vDp[5]);
     calc(u1,u2c,u3 ,u4c,vS0[6],vP0[6],vPm[6],vPp[6],vD0[6],vDm[6],vDp[6]);
     calc(u1,u2c,u3c,u4c,vS0[7],vP0[7],vPm[7],vPp[7],vD0[7],vDm[7],vDp[7]);
+
     for (Int_t s=0;s<8;s++){
       hX[s][ 0]->SetBinContent(im+1,vS0[s].Rho2());
       hX[s][ 1]->SetBinContent(im+1,vP0[s].Rho2());
@@ -531,28 +606,54 @@ void waves_from_moments(){
       hX[s][ 4]->SetBinContent(im+1,vD0[s].Rho2());
       hX[s][ 5]->SetBinContent(im+1,vDm[s].Rho2());
       hX[s][ 6]->SetBinContent(im+1,vDp[s].Rho2());
-      hX[s][ 7]->SetBinContent(im+1,vP0[s].Theta()>0 ? vP0[s].Theta() : vP0[s].Theta()+2*pi);
-      hX[s][ 8]->SetBinContent(im+1,vPm[s].Theta()>0 ? vPm[s].Theta() : vPm[s].Theta()+2*pi);
 
-      double hd0 = vD0[s].Theta()>0 ? vD0[s].Theta() : vD0[s].Theta()+2*pi;
-      if (hd0 < pi)
-        hd0 = 2*pi - hd0;
-
+      double hp0 = vP0[s].Theta()>0 ? vP0[s].Theta() : vP0[s].Theta()+2*pi;
+      double hpm = vPm[s].Theta()>0 ? vPm[s].Theta() : vPm[s].Theta()+2*pi;
       double hdm = vDm[s].Theta()>0 ? vDm[s].Theta() : vDm[s].Theta()+2*pi;
-      if (hdm < pi)
-        hdm = 2*pi - hdm;
-
       double hdp = vDp[s].Theta()>0 ? vDp[s].Theta() : vDp[s].Theta()+2*pi;
+      double hd0 = vD0[s].Theta()>0 ? vD0[s].Theta() : vD0[s].Theta()+2*pi;
 
+      if (hdm < pi) {
+        hdm = 2*pi - hdm;
+      }
+
+      if (hd0 < pi) {
+        hd0 = 2*pi - hd0;
+      }
+
+      hX[s][ 7]->SetBinContent(im+1,hp0);
+      hX[s][ 8]->SetBinContent(im+1,hpm);
       hX[s][ 9]->SetBinContent(im+1,hd0);
       hX[s][10]->SetBinContent(im+1,hdm);
       hX[s][11]->SetBinContent(im+1,hdp);
     }
+
+    double tt[12];
+
+    for (int i = 0; i < 8; i++){
+      checkRe(vS0[i],vP0[i],vPm[i],vPp[i],vD0[i],vDm[i],vDp[i], tt);
+      hMoments[i][ 0]->SetBinContent(im+1,tt[ 0]);
+      hMoments[i][ 1]->SetBinContent(im+1,tt[ 1]);
+      hMoments[i][ 2]->SetBinContent(im+1,tt[ 2]);
+      hMoments[i][ 3]->SetBinContent(im+1,tt[ 3]);
+      hMoments[i][ 4]->SetBinContent(im+1,tt[ 4]);
+      hMoments[i][ 5]->SetBinContent(im+1,tt[ 5]);
+      hMoments[i][ 6]->SetBinContent(im+1,tt[ 6]);
+      hMoments[i][ 7]->SetBinContent(im+1,tt[ 7]);
+      hMoments[i][ 8]->SetBinContent(im+1,tt[ 8]);
+      hMoments[i][ 9]->SetBinContent(im+1,tt[ 9]);
+      hMoments[i][10]->SetBinContent(im+1,tt[10]);
+      hMoments[i][11]->SetBinContent(im+1,tt[11]);
+    }
+
   }
+
   
+
   TCanvas* c2 = new TCanvas("c2","c2",1900,800);
   c2->Divide(4,3,0.001,0.001);
   Float_t color[8] = {kBlack,kRed,kMagenta,kGray,kGreen+1,kYellow+1,kCyan,kBlue+1};
+
   for (Int_t i=0;i<12;i++){
     c2->cd(i+1);
     gPad->SetRightMargin(0.01);
@@ -567,6 +668,19 @@ void waves_from_moments(){
     if (i== 6) hD1p2->Draw("same");
     if (i== 9) hPhi0->Draw("same");
     if (i==10) hPhi1->Draw("same");
+  }
+
+  TCanvas* c3 = new TCanvas("c3","c3",1900,800);
+  c3->Divide(4,3,0.001,0.001);
+  for (Int_t i=0;i<12;i++){
+    c3->cd(i+1);
+    gPad->SetRightMargin(0.01);
+    for (Int_t s=0;s<8;s++){
+      hMoments[s][i]->SetLineColor(color[s]);
+      hMoments[s][i]->SetMaximum(1e7);
+      hMoments[s][i]->SetMinimum(-1e7);
+      hMoments[s][i]->Draw(s==0 ? "e": "e same");
+    }
   }
 
   new TCanvas;
