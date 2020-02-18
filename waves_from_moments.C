@@ -504,10 +504,10 @@ void waves_from_moments(){
     double p0d0 = 2*p0*d0*cos(ap0-ad0);
     double dmdm = (21/s10*t42 + 21/4.*(-t40 + 2/7.*d0d0))/2;
     double pmdm = (7/s32*t32 + s3*p0d0 - t30*7/3.*s5)/2.;
-    if (dmdm<0) dmdm=0;
+    //if (dmdm<0) dmdm=0;
     double dm   = sqrt(dmdm);
     double pm   = pmdm/dm/2./cos(apm-adm);
-    if (pm<0) pm=-pm;
+    //if (pm<0) pm=-pm;
     
     TComplex S0(s0,0., 1);
     TComplex P0(p0,ap0,1);
