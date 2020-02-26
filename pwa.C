@@ -25,64 +25,6 @@ double s53 = sqrt(5./3.);
 double s35 = sqrt(3./5.);
 Double_t pi = TMath::Pi();
 
-
-//void moments_from_waves(double* xw, double* xt){
-//  double s0  = xw[ 0];
-//  double p0  = xw[ 1];
-//  double pm  = xw[ 2];
-//  double d0  = xw[ 3];
-//  double dm  = xw[ 4];
-//  double pp  = xw[ 5];
-//  double dp  = xw[ 6];
-//  double ap0 = xw[ 7];
-//  double apm = xw[ 8];
-//  double ad0 = xw[ 9];
-//  double adm = xw[10];
-//  double adp = xw[11];
-//  double s0s0 = s0*s0;
-//  double p0p0 = p0*p0;
-//  double pmpm = pm*pm;
-//  double d0d0 = d0*d0;
-//  double dmdm = dm*dm;
-//  double pppp = pp*pp;
-//  double dpdp = dp*dp;
-//  double s0p0 = 2*s0*p0*cos(ap0);
-//  double p0d0 = 2*p0*d0*cos(ap0-ad0);
-//  double pmdm = 2*pm*dm*cos(apm-adm);
-//  double s0pm = 2*s0*pm*cos(apm);
-//  double p0dm = 2*p0*dm*cos(ap0-adm);
-//  double pmd0 = 2*pm*d0*cos(apm-ad0);
-//  double s0d0 = 2*s0*d0*cos(ad0);
-//  double s0dm = 2*s0*dm*cos(adm);
-//  double p0pm = 2*p0*pm*cos(ap0-apm);
-//  double d0dm = 2*d0*dm*cos(ad0-adm);
-//  double ppdp = 2*pp*dp*cos(adp);
-//  double t00 = s0s0 + p0p0 + pmpm + d0d0 + dmdm + pppp + dpdp;
-//  double t10 = 1/s3*s0p0 + 2/s15*p0d0 + 1/s5*(pmdm+ppdp);
-//  double t11 = 1/s6*s0pm + 1/s10*p0dm - 1/s30*pmd0;
-//  double t20 = 1/s5*s0d0 + 2/5.*p0p0 - 1/5.*(pmpm+pppp) + 2/7.*d0d0 + 1/7.*(dmdm+dpdp);
-//  double t21 = 1/s10*s0dm+ 1/5.*s32*p0pm + 1/7.*s12*d0dm;
-//  double t22 = 1/5.*s32*(pmpm-pppp) + 1/7.*s32*(dmdm-dpdp);
-//  double t30 = 3/7./s5*(s3*p0d0-(pmdm+ppdp));
-//  double t31 = 1/7.*s35*(2*p0dm+s3*pmd0);
-//  double t32 = 1/7.*s32*(pmdm-ppdp);
-//  double t40 = 2/7.*d0d0-4/21.*(dmdm+dpdp);
-//  double t41 = 1/7.*s53*d0dm;
-//  double t42 = s10/21.*(dmdm-dpdp);
-//  xt[ 0] = t00;
-//  xt[ 1] = t10;
-//  xt[ 2] = t11;
-//  xt[ 3] = t20;
-//  xt[ 4] = t21;
-//  xt[ 5] = t22;
-//  xt[ 6] = t30;
-//  xt[ 7] = t31;
-//  xt[ 8] = t32;
-//  xt[ 9] = t40;
-//  xt[10] = t41;
-//  xt[11] = t42;
-//}
-
 double t00;
 double t10;
 double t11;
@@ -114,9 +56,7 @@ double fw(const double* xw){
   double dmdm = (21/s10*t42 + 21/4.*(-t40 + 2/7.*d0d0))/2;
   //printf("%f\n",dmdm);
   double pmdm = (7/s32*t32 + s3*p0d0 - t30*7/3.*s5)/2.;
-  if (dmdm<0) {
-    dmdm=0;
-  }
+  if (dmdm<0) dmdm=0;
   double dm   = sqrt(dmdm);
   double pm   = pmdm/dm/2./cos(apm-adm);
   double pmpm = pm*pm;
@@ -137,6 +77,7 @@ double fw(const double* xw){
   double f31 = -t31 + 1/7.*s35*(2*p0dm+s3*pmd0);
   double f41 = -t41 + 1/7.*s53*d0dm;
   double sum2 = f00*f00+f10*f10+f11*f11+f20*f20+f21*f21+f31*f31+f41*f41;
+
   //printf("sum2=%f\n",sum2);
   return sum2;
 }
@@ -247,11 +188,6 @@ void calc(TComplex u1, TComplex u2, TComplex u3, TComplex u4, TComplex &S0, TCom
   double dmdm_m_dpdp = 21./s10*t42;
   double dpdp = dmdm-dmdm_m_dpdp;
   if (dpdp<0) {
-    S0 = TComplex(0,0);
-    P0 = TComplex(0,0);
-    D0 = TComplex(0,0);
-    Pm = TComplex(0,0);
-    Dm = TComplex(0,0);
     Dp = TComplex(0,0);
     Pp = TComplex(0,0);
     return;
@@ -312,21 +248,21 @@ void checkRe(TComplex vS0, TComplex vP0, TComplex vPm, TComplex vPp, TComplex vD
   double d0dm = 2*d0*dm*cos(ad0-adm);
   double ppdp = 2*pp*dp*cos(adp);
 
-  R[0] =  -t00 + s0s0 + p0p0 + pmpm + d0d0 + dmdm + pppp + dpdp;
-  R[1] =  -t10 + 1/s3*s0p0 + 2/s15*p0d0 + 1/s5*(pmdm+ppdp);
-  R[2] =  -t11 + 1/s6*s0pm + 1/s10*p0dm - 1/s30*pmd0;
-  R[3] =  -t20 + 1/s5*s0d0 + 2/5.*p0p0 - 1/5.*(pmpm+pppp) + 2/7.*d0d0 + 1/7.*(dmdm+dpdp);
-  R[4] =  -t21 + 1/s10*s0dm+ 1/5.*s32*p0pm + 1/7.*s12*d0dm;
-  R[5] =  -t22 + 1/5.*s32*(pmpm-pppp) + 1/7.*s32*(dmdm-dpdp);
-  R[6] =  -t30 + 3/7./s5*(s3*p0d0-(pmdm+ppdp));
-  R[7] =  -t31 + 1/7.*s35*(2*p0dm+s3*pmd0);
-  R[8] =  -t32 + 1/7.*s32*(pmdm-ppdp);
-  R[9] =  -t40 + 2/7.*d0d0-4/21.*(dmdm+dpdp);
+  R[0]  = -t00 + s0s0 + p0p0 + pmpm + d0d0 + dmdm + pppp + dpdp;
+  R[1]  = -t10 + 1/s3*s0p0 + 2/s15*p0d0 + 1/s5*(pmdm+ppdp);
+  R[2]  = -t11 + 1/s6*s0pm + 1/s10*p0dm - 1/s30*pmd0;
+  R[3]  = -t20 + 1/s5*s0d0 + 2/5.*p0p0 - 1/5.*(pmpm+pppp) + 2/7.*d0d0 + 1/7.*(dmdm+dpdp);
+  R[4]  = -t21 + 1/s10*s0dm+ 1/5.*s32*p0pm + 1/7.*s12*d0dm;
+  R[5]  = -t22 + 1/5.*s32*(pmpm-pppp) + 1/7.*s32*(dmdm-dpdp);
+  R[6]  = -t30 + 3/7./s5*(s3*p0d0-(pmdm+ppdp));
+  R[7]  = -t31 + 1/7.*s35*(2*p0dm+s3*pmd0);
+  R[8]  = -t32 + 1/7.*s32*(pmdm-ppdp);
+  R[9]  = -t40 + 2/7.*d0d0-4/21.*(dmdm+dpdp);
   R[10] = -t41 + 1/7.*s53*d0dm;
   R[11] = -t42 + s10/21.*(dmdm-dpdp);
 }
 
-void waves_from_moments(){
+void pwa(){
   gStyle->SetOptStat(0);
   ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit","Combined");
   minimizer->SetMaxFunctionCalls(1000000);
@@ -464,10 +400,8 @@ void waves_from_moments(){
     Double_t phi0 = hPhi0->GetBinContent(im+1);
     Double_t phi1 = hPhi1->GetBinContent(im+1);
     Double_t p0m2 = t00-d0m2-d0m2-d1m2-d1p2;
-    if (p0m2<0) {
+    if (p0m2<0) // ?!
       p0m2=10;
-      std::cout << "p0m2<0\n";
-    }
     Double_t s0m = sqrt(s0m2);
     Double_t d0m = sqrt(d0m2);
     Double_t d1m = sqrt(d1m2);
@@ -493,10 +427,11 @@ void waves_from_moments(){
     minimizer->SetLimitedVariable(6,"adm",phi1,0.01,-2*pi,2*pi);
     minimizer->Minimize();
     Int_t status = minimizer->Status();
-    
+    //printf("Status: %i\n",status);
     const Double_t* xval = minimizer->X();
     const Double_t* xerr = minimizer->Errors();
-
+    // for (Int_t i=0;i<7;i++) hX[i]->SetBinContent(im+1,xval[i]);
+    //printf("%.0f %.0f %.0f\n",xval[0],xval[1],xval[2]);
     double s0  = xval[0];
     double p0  = xval[1];
     double d0  = xval[2];
@@ -518,13 +453,13 @@ void waves_from_moments(){
     double p0d0 = 2*p0*d0*cos(ap0-ad0);
     double dmdm = (21/s10*t42 + 21/4.*(-t40 + 2/7.*d0d0))/2;
     double pmdm = (7/s32*t32 + s3*p0d0 - t30*7/3.*s5)/2.;
-    if (dmdm<0)
-      dmdm=0;
+    // if (dmdm<0)
+    //   dmdm=0;
     double dm   = sqrt(dmdm);
     double pm   = pmdm/dm/2./cos(apm-adm);
-    if (pm<0)
-      pm=-pm;
-
+    // if (pm<0)
+    //   pm=-pm;
+    
     TComplex S0(s0,0., 1);
     TComplex P0(p0,ap0,1);
     TComplex PM(pm,apm,1);
@@ -536,13 +471,13 @@ void waves_from_moments(){
     a2pol = 2.*S0-4.*s5*D0;
     a1pol = 2.*s3*(PM+s5*DM);
     a0pol = S0 + s3*P0 + s5*D0;
-
+    
     a4 = TComplex(a4pol.Re(), a4pol.Im(), 0);
     a3 = TComplex(a3pol.Re(), a3pol.Im(), 0);
     a2 = TComplex(a2pol.Re(), a2pol.Im(), 0);
     a1 = TComplex(a1pol.Re(), a1pol.Im(), 0);
     a0 = TComplex(a0pol.Re(), a0pol.Im(), 0);
-
+    
     std::cout<<"-----------\n";
     printf("1stB %.04f %.04f\n",x1[0],x1[1]);
     rf.Solve(x1, 100000, 1e-10);
@@ -550,7 +485,7 @@ void waves_from_moments(){
     r1[1] = rf.X()[1];
     printf("1stA %.04f %.04f\n",rf.X()[0],rf.X()[1]);
     TComplex u1cor(rf.X()[0],rf.X()[1],0);
-
+    
     printf("2ndB %.04f %.04f\n",x2[0],x2[1]);
     rf1.Solve(x2, 100000, 1e-10); // x1 excluded, getting approximate root
     r2[0] = rf1.X()[0];
